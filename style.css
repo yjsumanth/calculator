@@ -1,0 +1,600 @@
+/* ============================================================
+   Calculator — mobile web app
+   v0.3 — matches desktop "Dark Orange" theme exactly
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+/* ---------- Theme tokens ---------- */
+:root {
+  /* Default = LIGHT theme (keeps the neumorphic look) */
+  --bg: #e8ecf1;
+  --surface: #e8ecf1;
+  --surface-2: #e8ecf1;
+  --display-bg: #e8ecf1;
+  --display-border: transparent;
+  --shadow-dark: #c5cad1;
+  --shadow-light: #ffffff;
+
+  --text-primary: #2a2f3a;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+
+  /* Light theme uses purple-ish accent (desktop's light theme color) */
+  --accent: #6a1b9a;
+  --accent-soft: #8e24aa;
+  --accent-press: #4a148c;
+
+  /* Number / function / equals colors (light) */
+  --num-bg: #e8ecf1;
+  --num-fg: #2a2f3a;
+  --num-press: #d6dae0;
+  --fn-bg: #e8ecf1;
+  --fn-fg: #6a1b9a;
+  --fn-press: #d6dae0;
+  --op-bg: #e8ecf1;
+  --op-fg: #6a1b9a;
+  --op-press: #d6dae0;
+  --eq-bg: #1a1a1a;
+  --eq-fg: #ffffff;
+  --eq-press: #333;
+
+  /* Geometry */
+  --gap: 14px;
+
+  /* Neumorphic shadows (light theme only) */
+  --shadow-out:
+    8px 8px 16px var(--shadow-dark),
+    -8px -8px 16px var(--shadow-light);
+  --shadow-in:
+    inset 5px 5px 10px var(--shadow-dark),
+    inset -5px -5px 10px var(--shadow-light);
+  --shadow-in-deep:
+    inset 8px 8px 16px var(--shadow-dark),
+    inset -8px -8px 16px var(--shadow-light);
+  --shadow-out-sm:
+    5px 5px 10px var(--shadow-dark),
+    -5px -5px 10px var(--shadow-light);
+}
+
+/* ---------- DARK theme — flat, matches desktop "Dark Orange" ---------- */
+body[data-theme='dark'] {
+  --bg: #0d0d0d;
+  --surface: #1c1c1c;
+  --surface-2: #2a2a2a;
+  --display-bg: #0d0d0d;
+  --display-border: rgba(255, 255, 255, 0.18);
+
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #888888;
+
+  --accent: #f67c01;
+  --accent-soft: #ff9020;
+  --accent-press: #cc6600;
+
+  /* Number digit circles — dark gray */
+  --num-bg: #333333;
+  --num-fg: #ffffff;
+  --num-press: #444444;
+  /* Function keys (DEL / % / CE / Clear) — light gray, black text */
+  --fn-bg: #a5a5a5;
+  --fn-fg: #000000;
+  --fn-press: #bdbdbd;
+  /* Operators — orange filled */
+  --op-bg: #f67c01;
+  --op-fg: #ffffff;
+  --op-press: #cc6600;
+  /* Equals — also orange (same as ops) */
+  --eq-bg: #f67c01;
+  --eq-fg: #ffffff;
+  --eq-press: #cc6600;
+
+  /* Flat: kill all neumorphic shadows */
+  --shadow-out: none;
+  --shadow-in: none;
+  --shadow-in-deep: none;
+  --shadow-out-sm: none;
+}
+
+/* Auto theme = inherit dark when system is dark */
+@media (prefers-color-scheme: dark) {
+  body[data-theme='auto'] {
+    --bg: #0d0d0d;
+    --surface: #1c1c1c;
+    --surface-2: #2a2a2a;
+    --display-bg: #0d0d0d;
+    --display-border: rgba(255, 255, 255, 0.18);
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted: #888888;
+    --accent: #f67c01;
+    --accent-soft: #ff9020;
+    --accent-press: #cc6600;
+    --num-bg: #333333;
+    --num-fg: #ffffff;
+    --num-press: #444444;
+    --fn-bg: #a5a5a5;
+    --fn-fg: #000000;
+    --fn-press: #bdbdbd;
+    --op-bg: #f67c01;
+    --op-fg: #ffffff;
+    --op-press: #cc6600;
+    --eq-bg: #f67c01;
+    --eq-fg: #ffffff;
+    --eq-press: #cc6600;
+    --shadow-out: none;
+    --shadow-in: none;
+    --shadow-in-deep: none;
+    --shadow-out-sm: none;
+  }
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 22px;
+  gap: 14px;
+}
+
+/* ============================================================
+   Top bar (icons above the display)
+   ============================================================ */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 4px 0;
+}
+
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.icon-btn:active {
+  transform: scale(0.9);
+  opacity: 0.7;
+}
+
+/* ============================================================
+   Display — outlined rectangle, holds only the expression history
+   ============================================================ */
+.display {
+  flex-shrink: 0;
+  min-height: 70px;
+  background: var(--display-bg);
+  border: 1.5px solid var(--display-border);
+  border-radius: 22px;
+  padding: 16px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  text-align: right;
+  overflow: hidden;
+  box-shadow: var(--shadow-in-deep);
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.display__expression {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+  min-height: 1.5em;
+  width: 100%;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  direction: rtl;
+}
+.display__expression::-webkit-scrollbar { display: none; }
+
+/* ============================================================
+   Result — big number BELOW the display frame (outside)
+   ============================================================ */
+.result {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: clamp(2.8rem, 13vw, 4.5rem);
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  line-height: 1.1;
+  width: 100%;
+  text-align: right;
+  padding: 4px 8px 0;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Number spelled out in Indian English (lakh / crore / arab) */
+.words-row {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 10px 0;
+}
+
+/* Breathing room between words and the keypad — only when words are visible */
+.words-row.is-visible {
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+}
+
+.words {
+  flex: 1;
+  text-align: right;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.9rem;
+  font-style: normal;
+  font-weight: 700;             /* bold */
+  color: var(--text-primary);   /* black in light, white in dark */
+  line-height: 1.35;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.words-copy {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  margin-top: -2px;
+  transition: color 0.15s ease, transform 0.12s ease, background-color 0.15s ease;
+}
+.words-copy:active {
+  transform: scale(0.9);
+  color: var(--accent);
+}
+.words-copy.is-copied {
+  color: #16a34a;     /* green flash */
+}
+.words-copy.is-failed {
+  color: #dc2626;     /* red flash */
+}
+
+/* In light theme the display still gets the inset neumorphic look */
+body[data-theme='light'] .display,
+body[data-theme='auto'] .display {
+  border-color: transparent;
+}
+@media (prefers-color-scheme: dark) {
+  body[data-theme='auto'] .display {
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+}
+
+/* ============================================================
+   Keypad — 4 columns × 5 rows of CIRCULAR buttons
+   Buttons are circles via aspect-ratio: 1
+   ============================================================ */
+.keypad {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: auto;
+  gap: var(--gap);
+  align-content: center;
+  justify-items: center;
+  min-height: 0;
+  padding: 4px 0;
+}
+
+.key {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;          /* CIRCULAR */
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.1s ease, transform 0.06s ease, box-shadow 0.12s ease;
+}
+
+/* Number buttons (digits, decimal) */
+.key--num {
+  background: var(--num-bg);
+  color: var(--num-fg);
+  box-shadow: var(--shadow-out);
+}
+.key--num:active,
+.key--num.is-pressed {
+  background: var(--num-press);
+  box-shadow: var(--shadow-in);
+  transform: scale(0.95);
+}
+
+/* Function keys (DEL / % / CE / Clear) — light gray with black text in dark */
+.key--fn {
+  background: var(--fn-bg);
+  color: var(--fn-fg);
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-out);
+}
+.key--fn:active,
+.key--fn.is-pressed {
+  background: var(--fn-press);
+  box-shadow: var(--shadow-in);
+  transform: scale(0.95);
+}
+
+/* Operator buttons (÷ × − + and =) — orange filled */
+.key--op {
+  background: var(--op-bg);
+  color: var(--op-fg);
+  font-size: 1.75rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-out);
+}
+.key--op:active,
+.key--op.is-pressed {
+  background: var(--op-press);
+  box-shadow: var(--shadow-in);
+  transform: scale(0.95);
+}
+
+/* ============================================================
+   Sheets (history + settings)
+   ============================================================ */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 50;
+}
+.sheet-backdrop.is-open { opacity: 1; pointer-events: auto; }
+
+.sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+  padding: 12px 22px calc(22px + env(safe-area-inset-bottom));
+  max-height: 80vh;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.sheet.is-open { transform: translateY(0); }
+
+.sheet__head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  position: relative;
+  padding: 4px 0 12px;
+}
+
+.sheet__grabber {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--text-muted);
+  opacity: 0.4;
+}
+
+.sheet__title {
+  grid-column: 2;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--text-primary);
+  text-align: center;
+  padding-top: 14px;
+}
+
+.sheet__action,
+.sheet__close {
+  grid-column: 3;
+  justify-self: end;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 14px 4px 0;
+}
+.sheet__close {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+/* History list */
+.history-list {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0 -22px;
+  padding: 6px 22px 8px;
+  -webkit-overflow-scrolling: touch;
+}
+.history-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 40px 20px;
+}
+.history-item {
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  cursor: pointer;
+  transition: background-color 0.1s ease, transform 0.06s ease;
+  text-align: right;
+}
+body[data-theme='light'] .history-item {
+  border: none;
+  box-shadow: var(--shadow-out-sm);
+}
+.history-item:active {
+  background: var(--surface-2);
+  transform: scale(0.99);
+}
+.history-item__expr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+}
+.history-item__result {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Settings */
+.settings-section { margin: 10px 0 18px; }
+.settings-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+.seg-control {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+body[data-theme='light'] .seg-control { border: none; box-shadow: var(--shadow-in); }
+
+.seg {
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  padding: 11px 8px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.seg.is-active {
+  background: var(--surface-2);
+  color: var(--accent);
+}
+body[data-theme='light'] .seg.is-active { box-shadow: var(--shadow-out-sm); }
+
+.settings-row {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+body[data-theme='light'] .settings-row { border: none; box-shadow: var(--shadow-out-sm); }
+.settings-row:active { background: var(--surface-2); }
+.settings-row__chev { color: var(--text-muted); font-size: 1.4rem; line-height: 1; }
+
+.settings-footer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+/* ============================================================
+   Responsive tweaks
+   ============================================================ */
+@media (max-height: 700px) {
+  .app { padding: 10px 14px 16px; gap: 8px; }
+  .display { min-height: 56px; padding: 12px 18px; }
+  .result { font-size: clamp(2.2rem, 11vw, 3.5rem); padding: 2px 6px 0; }
+  .key { font-size: 1.3rem; }
+  .key--fn { font-size: 0.9rem; }
+  .key--op { font-size: 1.5rem; }
+}
+@media (min-height: 850px) {
+  .app { padding: 22px 18px 30px; gap: 14px; }
+  .display { min-height: 80px; }
+  .key { font-size: 1.7rem; }
+  .key--fn { font-size: 1.1rem; }
+  .key--op { font-size: 2rem; }
+}
